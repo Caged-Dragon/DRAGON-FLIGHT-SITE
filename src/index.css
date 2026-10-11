@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #07060b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button, canvas {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dragon-clouds {
+  background-image:
+    radial-gradient(ellipse at 15% 24%, rgba(255, 190, 118, 0.16) 0 8%, transparent 18%),
+    radial-gradient(ellipse at 88% 32%, rgba(255, 120, 86, 0.14) 0 10%, transparent 20%),
+    radial-gradient(ellipse at 54% 78%, rgba(132, 204, 22, 0.08) 0 9%, transparent 22%);
+  animation: cloud-drift 18s ease-in-out infinite alternate;
+}
+
+.ember {
+  bottom: -2rem;
+  animation-name: ember-rise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.game-shell {
+  animation: shell-float 5.5s ease-in-out infinite;
+}
+
+.dragon-mark {
+  animation: mark-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes ember-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.6);
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(18px, -112vh, 0) scale(1.35);
+  }
+}
+
+@keyframes cloud-drift {
+  from {
+    transform: translate3d(-1.5rem, -0.5rem, 0) scale(1);
+  }
+  to {
+    transform: translate3d(1.5rem, 0.6rem, 0) scale(1.04);
+  }
+}
+
+@keyframes shell-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes mark-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dragon-clouds,
+  .dragon-mark,
+  .ember,
+  .game-shell {
+    animation: none;
+  }
+}
