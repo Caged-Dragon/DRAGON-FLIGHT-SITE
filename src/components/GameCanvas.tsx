@@ -4,6 +4,7 @@ import { DragonSkin, Physics, ThemeMode, GameSettings } from '../types/game';
 import { REALMS, DRAGON_VISUAL_LENGTH } from '../data/gameData';
 import { drawBackground, drawDragon, drawGate, drawParticles } from '../utils/dragonRenderer';
 import { soundManager } from '../utils/audio';
+import { reportRun } from '../dps';
 
 const LOGICAL_HEIGHT = 600;
 const DRAGON_R = 18;
@@ -372,6 +373,7 @@ export function GameCanvas({
             p.status = 'over';
             soundManager.play('over');
             onUpdateHighScore(p.score);
+            void reportRun('dragon-flight', p.score, { skin: skin.id });
             shakeRef.current = 14;
             // Death burst
             for (let i = 0; i < 24; i++) {
