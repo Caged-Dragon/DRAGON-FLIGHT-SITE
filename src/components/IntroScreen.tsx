@@ -1,9 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { Play, Flame, Volume2, VolumeX, Sun, Moon } from 'lucide-react';
+import { Play, Flame, Volume2, VolumeX, Sun, Moon, ArrowLeft } from 'lucide-react';
 import { DragonSkin, ThemeMode } from '../types/game';
 import { SKINS, REALMS } from '../data/gameData';
 import { drawDragon } from '../utils/dragonRenderer';
 import { soundManager } from '../utils/audio';
+import { RealmBackdrop, exitToHub } from '../dps';
+
+const REALM_PALETTES = ['ember', 'frost', 'storm', 'void', 'emerald'] as const;
 
 interface IntroScreenProps {
   onStartGame: () => void;
@@ -30,6 +33,7 @@ export function IntroScreen({
 }: IntroScreenProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [flapTest, setFlapTest] = useState(0);
+  const [realmIdx, setRealmIdx] = useState(0);
   const isLight = theme === 'light';
 
   useEffect(() => {
@@ -61,19 +65,18 @@ export function IntroScreen({
 
   return (
     <div
-      className={`fixed inset-0 w-full h-full overflow-hidden flex flex-col transition-colors duration-300 ${
-        isLight ? 'bg-gradient-to-br from-amber-50 via-white to-orange-50 text-slate-900' : 'bg-gradient-to-br from-[#0a0512] via-[#0f0a18] to-[#07060b] text-orange-50'
+      className={`fixed inset-0 w-full h-full overflow-y-auto overflow-x-hidden transition-colors duration-300 ${
+        isLight ? 'bg-gradient-to-br from-amber-50 via-white to-orange-50 text-slate-900' : 'bg-[#07060b] text-orange-50'
       }`}
     >
-      {/* Ambient background orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-32 -left-32 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 -right-24 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-32 left-1/3 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl" />
-      </div>
+      {/* Cycling realm backdrop: volcanic valley → crystal caverns → storm citadel → void → temple */}
+      {!isLight && (
+        <RealmBackdrop palette={[...REALM_PALETTES]} cycleMs={7000} dragons onIndex={setRealmIdx} />
+      )}
 
+      <div className="relative z-10 flex min-h-full flex-col">
       {/* Header */}
-      <header className="relative z-10 flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3 sm:py-4 w-full flex-shrink-0">
+      <header className="fl-rise relative z-10 flex items-center justify-between px-[clamp(1rem,0.5rem+2.4vw,2.5rem)] py-[clamp(0.6rem,0.4rem+1vw,1rem)] w-full flex-shrink-0">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-br from-amber-400 via-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
             <Flame className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
@@ -102,24 +105,25 @@ export function IntroScreen({
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="relative z-10 flex-1 min-h-0 flex flex-col lg:flex-row items-center justify-center gap-4 sm:gap-6 lg:gap-12 px-4 sm:px-6 lg:px-12 max-w-[1400px] mx-auto w-full">
+      {/* Main Content — layout flips by the available WIDTH (container query), so it re-flows continuously */}
+      <div className="@container relative z-10 flex flex-1 w-full">
+      <main className="fl-stagger flex-1 min-w-0 flex flex-col @min-[58rem]:flex-row items-center justify-center gap-[clamp(1rem,0.5rem+2.4vw,3rem)] px-[clamp(1rem,0.5rem+2.4vw,3rem)] py-[clamp(0.75rem,0.4rem+1.6vw,2rem)] max-w-[1400px] mx-auto w-full">
         {/* Left - Hero */}
-        <div className="flex-1 min-w-0 text-center lg:text-left space-y-3 sm:space-y-4">
-          <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-[0.95] ${
+        <div className="flex-1 min-w-0 text-center @min-[58rem]:text-left space-y-[clamp(0.6rem,0.4rem+0.8vw,1.1rem)]">
+          <h1 className={`text-[length:clamp(2rem,1rem+4.6vw,4.6rem)] font-black tracking-tight leading-[0.95] ${
             isLight ? 'text-slate-900' : 'text-white'
           }`}>
             MASTER THE{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-500 to-red-600">
+            <span className="fl-shine text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-500 to-red-600">
               CELESTIAL SKIES
             </span>
           </h1>
 
-          <p className={`text-sm sm:text-base max-w-lg mx-auto lg:mx-0 leading-relaxed ${isLight ? 'text-slate-600' : 'text-orange-100/75'}`}>
+          <p className={`text-[length:clamp(0.9rem,0.82rem+0.35vw,1.1rem)] max-w-lg mx-auto @min-[58rem]:mx-0 leading-relaxed ${isLight ? 'text-slate-600' : 'text-orange-100/75'}`}>
             Fly through 5 elemental realms that shift randomly. Survive as long as you can!
           </p>
 
-          <div className={`flex items-center justify-center lg:justify-start gap-4 text-xs sm:text-sm font-bold ${isLight ? 'text-slate-500' : 'text-orange-300/70'}`}>
+          <div className={`flex items-center justify-center @min-[58rem]:justify-start gap-4 text-xs sm:text-sm font-bold ${isLight ? 'text-slate-500' : 'text-orange-300/70'}`}>
             <div className="flex items-center gap-1.5">
               <span className="text-xl font-black text-amber-500">{highScore}</span>
               <span>Best</span>
@@ -131,19 +135,26 @@ export function IntroScreen({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 pt-1">
+          <div className="flex flex-wrap items-center justify-center @min-[58rem]:justify-start gap-3 pt-1">
             <button
               onClick={onStartGame}
-              className="group flex items-center gap-3 px-7 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-red-600 font-black text-base sm:text-lg text-white shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="fl-cta group flex items-center gap-3 px-[clamp(1.4rem,1rem+1.4vw,2rem)] py-[clamp(0.8rem,0.6rem+0.6vw,1rem)] rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-red-600 font-black text-[length:clamp(0.95rem,0.85rem+0.4vw,1.15rem)] text-white shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.03] active:scale-[0.97] transition-all"
             >
               <Play className="h-5 w-5 sm:h-6 sm:w-6 fill-white" />
               <span>START FLYING</span>
+            </button>
+            <button
+              onClick={() => void exitToHub()}
+              className={`flex items-center gap-2 px-5 py-3.5 sm:py-4 rounded-2xl border font-bold text-sm transition ${isLight ? 'bg-white border-slate-300 text-slate-800 hover:bg-slate-50' : 'bg-white/10 border-white/15 text-white hover:bg-white/20'}`}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Exit to DracoPyre Strike</span>
             </button>
           </div>
         </div>
 
         {/* Right - Dragon Preview */}
-        <div className="w-full max-w-sm lg:w-[380px] flex-shrink-0">
+        <div className="fl-card w-[min(100%,clamp(17rem,11rem+24vw,26rem))] flex-shrink-0">
           <div className={`border rounded-2xl sm:rounded-3xl p-4 sm:p-5 backdrop-blur-md relative overflow-hidden transition-colors ${
             isLight ? 'bg-white/90 border-slate-200 shadow-2xl' : 'bg-stone-900/70 border-white/15 shadow-2xl'
           }`}>
@@ -209,16 +220,18 @@ export function IntroScreen({
           </div>
         </div>
       </main>
+      </div>
 
-      {/* Footer - Realm Preview */}
-      <footer className={`relative z-10 flex-shrink-0 px-4 sm:px-6 lg:px-8 py-3 border-t ${isLight ? 'border-slate-200' : 'border-white/10'}`}>
-        <div className="flex items-center justify-center gap-2 sm:gap-3 overflow-x-auto">
-          {REALMS.map((realm) => (
+      {/* Footer - Realm Preview (the active chip follows the backdrop's realm) */}
+      <footer className={`fl-rise relative z-10 flex-shrink-0 px-[clamp(1rem,0.5rem+2.4vw,2.5rem)] py-3 pl-[clamp(4rem,3rem+3vw,5rem)] border-t backdrop-blur-sm ${isLight ? 'border-slate-200' : 'border-white/10 bg-black/30'}`}>
+        <div className="flex flex-wrap items-center justify-center gap-[clamp(0.4rem,0.3rem+0.6vw,0.75rem)]">
+          {REALMS.map((realm, ri) => (
             <div
               key={realm.id}
-              className={`flex items-center gap-2 border rounded-lg px-3 py-1.5 text-xs ${
+              className={`fl-chip flex items-center gap-2 border rounded-lg px-3 py-1.5 text-xs ${ri === realmIdx && !isLight ? 'is-on' : ''} ${
                 isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-stone-900/60 border-white/10'
               }`}
+              style={{ ['--accent' as string]: realm.accentColor }}
             >
               <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: realm.accentColor }} />
               <span className={`font-bold whitespace-nowrap ${isLight ? 'text-slate-800' : 'text-white'}`}>{realm.name}</span>
@@ -226,6 +239,7 @@ export function IntroScreen({
           ))}
         </div>
       </footer>
+      </div>
     </div>
   );
 }
